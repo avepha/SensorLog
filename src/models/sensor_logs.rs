@@ -17,7 +17,7 @@ pub fn setup() {
             sensor INTEGER NOT NULL,
             outdated BOOL NOT NULL,
             value FLOAT CHECK (value >= 0.0) NOT NULL,
-            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            created_at INTEGER NOT NULL,
             PRIMARY KEY (sensor, created_at) 
         ) 
     ",

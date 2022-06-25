@@ -1,3 +1,5 @@
 target
 .idea
 sensor_logs.db
+.playground
+test.rs
