@@ -26,6 +26,7 @@ pub async fn logs() -> Result<impl warp::Reply, Infallible> {
 }
 
 pub async fn log_saves(sensor: SensorLog) -> Result<impl warp::Reply, Infallible> {
+    println!("{:?}", sensor);
     Ok(warp::reply::json(&HashMap::from([(
         "status",
         "not implemented",
