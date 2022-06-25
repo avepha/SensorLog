@@ -2,6 +2,7 @@ pub mod api;
 pub mod db;
 pub mod handlers;
 pub mod models;
+pub mod utils;
 
 use crate::models::sensor_logs;
 use warp::Filter;

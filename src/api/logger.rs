@@ -21,6 +21,6 @@ pub fn log_saves() -> impl Filter<Extract = impl warp::Reply, Error = warp::Reje
         .and_then(handlers::logger::log_saves)
 }
 
-fn json_body() -> impl Filter<Extract = (SensorLog,), Error = warp::Rejection> + Clone {
+fn json_body() -> impl Filter<Extract = (Vec<SensorLog>,), Error = warp::Rejection> + Clone {
     warp::body::content_length_limit(1024 * 16).and(warp::body::json())
 }
