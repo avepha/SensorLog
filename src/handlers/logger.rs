@@ -14,12 +14,27 @@ pub async fn logs(params: LogFilterInput) -> Result<impl warp::Reply, Infallible
         None => 10,
     };
 
-    if params.after != None || params.before != None || params.sensor != None {
-        base_stm.push_str(&" WHERE ");
-    }
+    let mut conditions: Vec<String> = Vec::new();
 
     if params.sensor != None {
-        base_stm.push_str(&format!(" sensor = {} ", params.sensor.unwrap()));
+        conditions.push(format!("sensor = {}", params.sensor.unwrap()));
+    }
+
+    if params.after != None && params.before == None {
+        conditions.push(format!(" created_at > {} ", params.after.unwrap()));
+    } else if params.after == None && params.before != None {
+        conditions.push(format!(" created_at < {} ", params.before.unwrap()));
+    } else if params.after != None && params.before != None {
+        conditions.push(format!(
+            " created_at BETWEEN {} AND {} ",
+            params.after.unwrap(),
+            params.before.unwrap()
+        ));
+    }
+
+    if conditions.len() > 0 {
+        base_stm.push_str(" WHERE ");
+        base_stm.push_str(&conditions.join(" AND "));
     }
 
     base_stm.push_str(&format!(" LIMIT {}", limit));
