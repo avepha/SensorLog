@@ -1,10 +1,10 @@
 use crate::db::sqlite::SQLITEPOOL;
 use crate::models::sensor_logs::SensorLog;
+use crate::utils::iso8601;
 use chrono::prelude::{DateTime, NaiveDateTime, Utc};
 use rusqlite::params_from_iter;
 use std::collections::HashMap;
 use std::convert::Infallible;
-use std::time::{SystemTime, UNIX_EPOCH};
 
 pub async fn logs() -> Result<impl warp::Reply, Infallible> {
     let conn = SQLITEPOOL.get().unwrap();
@@ -58,9 +58,8 @@ pub async fn log_saves(sensors: Vec<SensorLog>) -> Result<impl warp::Reply, Infa
         });
         values.push(sensor.value.to_string());
 
-        let now = SystemTime::now();
-        let since_the_epoch = now.duration_since(UNIX_EPOCH).expect("Time went backwards");
-        values.push(since_the_epoch.as_millis().to_string());
+        let now = std::time::SystemTime::now();
+        values.push(iso8601(&now));
     }
 
     let result = conn.execute(&placeholers, params_from_iter(values.iter()));
