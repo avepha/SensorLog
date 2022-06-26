@@ -1,3 +1,4 @@
+use crate::api::logger::LogFilterInput;
 use crate::db::sqlite::SQLITEPOOL;
 use crate::models::sensor_logs::SensorLog;
 use crate::utils::iso8601;
@@ -5,11 +6,28 @@ use rusqlite::params_from_iter;
 use std::collections::HashMap;
 use std::convert::Infallible;
 
-pub async fn logs() -> Result<impl warp::Reply, Infallible> {
+pub async fn logs(params: LogFilterInput) -> Result<impl warp::Reply, Infallible> {
+    let mut base_stm = String::from("SELECT * FROM sensor_logs");
+
+    let limit = match params.limit {
+        Some(limit) => limit,
+        None => 10,
+    };
+
+    if params.after != None || params.before != None || params.sensor != None {
+        base_stm.push_str(&" WHERE ");
+    }
+
+    if params.sensor != None {
+        base_stm.push_str(&format!(" sensor = {} ", params.sensor.unwrap()));
+    }
+
+    base_stm.push_str(&format!(" LIMIT {}", limit));
+
+    println!("{}", base_stm);
+
     let conn = SQLITEPOOL.get().unwrap();
-    let mut stmt = conn
-        .prepare(&"SELECT * FROM sensor_logs LIMIT 100;")
-        .unwrap();
+    let mut stmt = conn.prepare(&base_stm).unwrap();
     let results = stmt
         .query_map([], |row| {
             Ok(SensorLog {
@@ -55,9 +73,7 @@ pub async fn log_saves(sensors: Vec<SensorLog>) -> Result<impl warp::Reply, Infa
             String::from("0")
         });
         values.push(sensor.value.to_string());
-
-        let now = std::time::SystemTime::now();
-        values.push(iso8601(&now));
+        values.push(iso8601(&std::time::SystemTime::now()));
     }
 
     let result = conn.execute(&placeholers, params_from_iter(values.iter()));

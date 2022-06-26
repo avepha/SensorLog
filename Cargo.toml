@@ -5,6 +5,11 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+# `cargo run --bin name` will point to the path we define here(Should use autobins = false)
+[[bin]]
+name = "playground"
+path = "src/bin/playground.rs"
+
 [dependencies]
 tokio = { version = "1", features = ["full"] }
 warp = "0.3"
