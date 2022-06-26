@@ -5,8 +5,18 @@ use crate::utils::ts_to_iso8601;
 
 use chrono::offset;
 use rusqlite::params_from_iter;
+use serde_derive::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::convert::Infallible;
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+struct SensorLogResponse {
+    sensor: u32,
+    outdated: bool,
+    value: f32,
+    created_at: String,
+    created_at_ts: i64,
+}
 
 pub async fn logs(params: LogFilterInput) -> Result<impl warp::Reply, Infallible> {
     let mut base_stm = String::from("SELECT * FROM sensor_logs");
@@ -48,20 +58,24 @@ pub async fn logs(params: LogFilterInput) -> Result<impl warp::Reply, Infallible
     let results = stmt
         .query_map([], |row| {
             let timestamp: i64 = match row.get(3) {
-                Ok(timestamp) => timestamp,
-                Err(_) => 0,
+                Ok(ts) => ts,
+                Err(e) => {
+                    println!("[Error] {}", e);
+                    0
+                }
             };
 
-            Ok(SensorLog {
+            Ok(SensorLogResponse {
                 sensor: row.get(0)?,
                 outdated: row.get(1)?,
                 value: row.get(2)?,
                 created_at: ts_to_iso8601(timestamp / 1000),
+                created_at_ts: timestamp,
             })
         })
         .unwrap();
 
-    let mut sensor_logs: Vec<SensorLog> = Vec::new();
+    let mut sensor_logs: Vec<SensorLogResponse> = Vec::new();
     for r in results {
         sensor_logs.push(r.unwrap())
     }
