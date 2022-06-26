@@ -1,24 +1,22 @@
 use crate::db::sqlite::SQLITEPOOL;
 use crate::models::sensor_logs::SensorLog;
 use crate::utils::iso8601;
-use chrono::prelude::{DateTime, NaiveDateTime, Utc};
 use rusqlite::params_from_iter;
 use std::collections::HashMap;
 use std::convert::Infallible;
 
 pub async fn logs() -> Result<impl warp::Reply, Infallible> {
     let conn = SQLITEPOOL.get().unwrap();
-    let mut stmt = conn.prepare(&"SELECT * FROM sensor_logs;").unwrap();
+    let mut stmt = conn
+        .prepare(&"SELECT * FROM sensor_logs LIMIT 100;")
+        .unwrap();
     let results = stmt
         .query_map([], |row| {
-            let naive = NaiveDateTime::from_timestamp(row.get(3).unwrap(), 0);
-            let datetime: DateTime<Utc> = DateTime::from_utc(naive, Utc);
-
             Ok(SensorLog {
                 sensor: row.get(0)?,
                 outdated: row.get(1)?,
                 value: row.get(2)?,
-                created_at: datetime.to_rfc3339(),
+                created_at: row.get(3)?,
             })
         })
         .unwrap();
