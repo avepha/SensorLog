@@ -1,7 +1,9 @@
 use crate::api::logger::LogFilterInput;
 use crate::db::sqlite::SQLITEPOOL;
 use crate::models::sensor_logs::SensorLog;
-use crate::utils::iso8601;
+use crate::utils::ts_to_iso8601;
+
+use chrono::offset;
 use rusqlite::params_from_iter;
 use std::collections::HashMap;
 use std::convert::Infallible;
@@ -39,17 +41,22 @@ pub async fn logs(params: LogFilterInput) -> Result<impl warp::Reply, Infallible
 
     base_stm.push_str(&format!(" LIMIT {}", limit));
 
-    println!("{}", base_stm);
+    println!("[Query] {}", base_stm);
 
     let conn = SQLITEPOOL.get().unwrap();
     let mut stmt = conn.prepare(&base_stm).unwrap();
     let results = stmt
         .query_map([], |row| {
+            let timestamp: i64 = match row.get(3) {
+                Ok(timestamp) => timestamp,
+                Err(_) => 0,
+            };
+
             Ok(SensorLog {
                 sensor: row.get(0)?,
                 outdated: row.get(1)?,
                 value: row.get(2)?,
-                created_at: row.get(3)?,
+                created_at: ts_to_iso8601(timestamp / 1000),
             })
         })
         .unwrap();
@@ -88,7 +95,7 @@ pub async fn log_saves(sensors: Vec<SensorLog>) -> Result<impl warp::Reply, Infa
             String::from("0")
         });
         values.push(sensor.value.to_string());
-        values.push(iso8601(&std::time::SystemTime::now()));
+        values.push(offset::Utc::now().timestamp_millis().to_string());
     }
 
     let result = conn.execute(&placeholers, params_from_iter(values.iter()));
