@@ -10,6 +10,7 @@ pub struct LogFilterInput {
     pub before: Option<u64>,
     pub limit: Option<u32>,
     pub station: Option<u32>,
+    pub interval: Option<u32>,
 }
 
 pub fn log_filters() -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {

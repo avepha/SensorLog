@@ -28,6 +28,11 @@ pub async fn logs(params: LogFilterInput) -> Result<impl warp::Reply, Infallible
         None => 10,
     };
 
+    let interval = match params.interval {
+        Some(interval) => interval,
+        None => 5,
+    };
+
     let mut conditions: Vec<String> = Vec::new();
 
     if params.sensor != None {
