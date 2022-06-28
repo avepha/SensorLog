@@ -9,6 +9,7 @@ pub struct LogFilterInput {
     pub after: Option<u64>,
     pub before: Option<u64>,
     pub limit: Option<u32>,
+    pub station: Option<u32>,
 }
 
 pub fn log_filters() -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
@@ -21,6 +22,7 @@ pub fn logs() -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection
         .and(warp::get())
         .and(warp::query::<LogFilterInput>())
         .and_then(handlers::logger::logs)
+        .with(warp::log("api"))
 }
 
 // POST /logs
@@ -29,6 +31,7 @@ pub fn log_saves() -> impl Filter<Extract = impl warp::Reply, Error = warp::Reje
         .and(warp::post())
         .and(json_body())
         .and_then(handlers::logger::log_saves)
+        .with(warp::log("api"))
 }
 
 fn json_body() -> impl Filter<Extract = (Vec<SensorLog>,), Error = warp::Rejection> + Clone {

@@ -7,6 +7,7 @@ pub struct SensorLog {
     pub outdated: bool,
     pub value: f32,
     pub created_at: String,
+    pub station: u32,
 }
 
 pub fn setup() {
@@ -16,9 +17,10 @@ pub fn setup() {
         CREATE TABLE IF NOT EXISTS sensor_logs (
             sensor INTEGER NOT NULL,
             outdated BOOL NOT NULL,
+            station INTEGER NOT NULL,
             value FLOAT CHECK (value >= 0.0) NOT NULL,
             created_at INTEGER NOT NULL,
-            PRIMARY KEY (sensor, created_at) 
+            PRIMARY KEY (sensor, station, created_at) 
         ) 
     ",
         [],
