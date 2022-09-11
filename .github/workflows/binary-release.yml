@@ -12,16 +12,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Install sqlite3
-        run: sudo apt install -y libsqlite3-dev
+        run: sudo apt-get install --assume-yes libsqlite3-dev:arm64
       - uses: actions/checkout@v2
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
-#          target: armv7-unknown-linux-gnueabihf
+          target: armv7-unknown-linux-gnueabihf
           override: true
       - uses: actions-rs/cargo@v1
         with:
           use-cross: true
           command: build
-#          args: --target armv7-unknown-linux-gnueabihf --verbose
-          args: --verbose --bin logger
+          args: --target armv7-unknown-linux-gnueabihf --verbose --bin logger
