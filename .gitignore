@@ -4,3 +4,4 @@ sensor_logs.db
 .playground
 test.rs
 sensor_log_dev.db
+*.db
