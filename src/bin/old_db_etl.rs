@@ -1,8 +1,8 @@
 extern crate logger;
+
 use crate::logger::db::sqlite::get_db;
 use crate::logger::handlers::logger::log_saves;
 use crate::logger::models::sensor_logs::SensorLog;
-use chrono::{DateTime, FixedOffset, NaiveDateTime, TimeZone};
 use logger::{models::init_db, utils::str_date_to_millis};
 
 #[derive(Debug, Clone)]
