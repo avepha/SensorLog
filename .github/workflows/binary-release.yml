@@ -6,18 +6,6 @@ on:
 name: Release
 
 jobs:
-  build_push_docker_image:
-    name: Build and push Docker image
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Build Docker image
-        run: docker build -t logger .
-      - name: Push Docker image
-        run: docker tag logger:latest ${{ secrets.DOCKER_USERNAME }}/logger:latest
-      - name: Push Docker image
-        run: docker push ${{ secrets.DOCKER_USERNAME }}/logger:latest
-
   linux_arm6:
     name: Create release for Linux ARMv6
     runs-on: ubuntu-latest
