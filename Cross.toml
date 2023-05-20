@@ -1,6 +1,6 @@
 # Pi 0/1
 [target.arm-unknown-linux-gnueabihf]
-dockerfile = "./Dockerfile"
+image = "avepha/logger-armv6:latest"
 
 # Pi 2/3/4
 [target.armv7-unknown-linux-gnueabihf]
