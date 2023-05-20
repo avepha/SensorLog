@@ -1,14 +1,13 @@
 on:
   push:
     branches:
-      - production
-      - dev
+      - main
 
 name: Release
 
 jobs:
   linux_arm6:
-    name: Linux ARMv6
+    name: Create release for Linux ARMv6
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -17,8 +16,28 @@ jobs:
           toolchain: stable
           target: arm-unknown-linux-gnueabihf
           override: true
-      - uses: actions-rs/cargo@v1
+      - name: Build release binary for Linux ARMv6
+        uses: actions-rs/cargo@v1
         with:
           use-cross: true
           command: build
           args: --target arm-unknown-linux-gnueabihf --verbose --bin logger
+      - name: Bump version and push tag
+        id: tag_version
+        uses: mathieudutour/github-tag-action@v6.1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create release
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ steps.tag_version.outputs.new_tag }}
+          name: Release ${{ steps.tag_version.outputs.new_tag }}
+          body: ${{ steps.tag_version.outputs.changelog }}
+      - name: Upload binaries to release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: target/release/arm-unknown-linux-gnueabihf
+          asset_name: logger-arm-unknown-linux-gnueabihf
+          tag: ${{ steps.tag_version.outputs.new_tag }}
+          overwrite: true
