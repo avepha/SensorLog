@@ -14,7 +14,6 @@ jobs:
       - uses: moonrepo/setup-rust@v0
         with:
           targets: 'arm-unknown-linux-gnueabihf'
-          override: true
       - name: Build release binary for Linux ARMv6
         uses: actions-rs/cargo@v1
         with:
@@ -36,7 +35,7 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: target/release/arm-unknown-linux-gnueabihf
+          file: target/release/arm-unknown-linux-gnueabihf/logger
           asset_name: logger-arm-unknown-linux-gnueabihf
           tag: ${{ steps.tag_version.outputs.new_tag }}
           overwrite: true
