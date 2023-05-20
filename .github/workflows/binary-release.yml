@@ -10,11 +10,10 @@ jobs:
     name: Create release for Linux ARMv6
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
+      - uses: actions/checkout@v3
+      - uses: moonrepo/setup-rust@v0
         with:
-          toolchain: stable
-          target: arm-unknown-linux-gnueabihf
+          targets: 'arm-unknown-linux-gnueabihf'
           override: true
       - name: Build release binary for Linux ARMv6
         uses: actions-rs/cargo@v1
