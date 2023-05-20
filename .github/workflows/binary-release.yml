@@ -20,6 +20,16 @@ jobs:
           use-cross: true
           command: build
           args: --release --target arm-unknown-linux-gnueabihf --verbose --bin logger
+      - name: List Directories and Files
+        run: |
+          # Install tree if not available
+          if ! command -v tree &> /dev/null; then
+            apt-get update
+            apt-get install -y tree
+          fi
+
+          # Print directory and file structure using tree command
+          tree
       - name: Bump version and push tag
         id: tag_version
         uses: mathieudutour/github-tag-action@v6.1
