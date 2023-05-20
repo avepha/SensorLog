@@ -6,7 +6,32 @@ on:
 name: Release
 
 jobs:
+  build_docker:
+    name: Build Docker image
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Verify Changed files
+        uses: tj-actions/verify-changed-files@v14
+        id: verify-changed-files
+        with:
+          files: |
+            rpizw.Dockerfile
+
+      - name: Run step only when any of the above files change.
+        if: steps.verify-changed-files.outputs.files_changed == 'true'
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: ./rpizw.Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/logger-armv6:latest
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+
   linux_arm6:
+    needs: build_docker
     name: Create release for Linux ARMv6
     runs-on: ubuntu-latest
     steps:
