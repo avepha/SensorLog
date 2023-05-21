@@ -72,7 +72,7 @@ jobs:
           args: --release --target ${{ matrix.target }} --verbose --bin logger
       - uses: actions/upload-artifact@v3
         with:
-          name: ${{ matrix.target }}
+          name: logger-${{ matrix.target }}
           path: target/${{ matrix.target }}/release/logger
 
   github_release:
@@ -113,8 +113,10 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/download-artifact@v3
         with:
-          name: ${{ matrix.target }}
+          name: logger-${{ matrix.target }}
           path: ./${{ matrix.target }}
+      - name: List output
+        run: echo ${{ needs.github_release.job_output.tag }}
       - name: Upload binaries to release
         uses: svenstaro/upload-release-action@v2
         with:
