@@ -7,8 +7,16 @@ name: Release
 
 jobs:
   build_docker:
-    name: Build Docker image
+    name: Build Docker image for ${{ matrix.os }}
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - os: linux_arm6
+            dockerfile: rpizw.Dockerfile
+          - os: linux_arm7
+            dockerfile: rpi3.Dockerfile
+
     steps:
       - uses: actions/checkout@v3
       - name: Verify Changed files
@@ -16,7 +24,7 @@ jobs:
         id: verify-changed-files
         with:
           since_last_remote_commit: true
-          files: rpizw.Dockerfile
+          files: ${{ matrix.dockerfile }}
           
       - name: Log in to Docker Hub
         if: steps.verify-changed-files.outputs.any_changed == 'true'
@@ -30,9 +38,9 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: .
-          file: ./rpizw.Dockerfile
+          file: ${{ matrix.dockerfile }}
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/logger-armv6:latest
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/logger-${{ matrix.os }}:latest
 
 
   linux_arm6:
