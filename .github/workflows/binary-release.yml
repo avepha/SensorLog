@@ -43,10 +43,17 @@ jobs:
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/logger-${{ matrix.os }}:latest
 
 
-  linux_arm6:
+  build_released_binary:
     needs: build_docker
-    name: Create release for Linux ARMv6
+    name: Create binary release for ${{ matrix.os }}
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - target: arm-unknown-linux-gnueabihf
+            os: linux-armv6
+          - target: armv7-unknown-linux-gnueabihf
+            os: linux-armv7
     steps:
       - uses: actions/checkout@v3
       - name: Log in to Docker Hub
@@ -56,13 +63,26 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - uses: moonrepo/setup-rust@v0
         with:
-          targets: 'arm-unknown-linux-gnueabihf'
-      - name: Build release binary for Linux ARMv6
+          targets: '${{ matrix.target }}'
+      - name: Build release binary for ${{ matrix.os }}
         uses: actions-rs/cargo@v1
         with:
           use-cross: true
           command: build
-          args: --release --target arm-unknown-linux-gnueabihf --verbose --bin logger
+          args: --release --target ${{ matrix.target }} --verbose --bin logger
+      - uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.target }}
+          path: target/${{ matrix.target }}/release/logger
+
+  github_release:
+    needs: build_released_binary
+    name: Create GitHub release
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.job_output.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v3
       - name: Bump version and push tag
         id: tag_version
         uses: mathieudutour/github-tag-action@v6.1
@@ -74,11 +94,32 @@ jobs:
           tag: ${{ steps.tag_version.outputs.new_tag }}
           name: Release ${{ steps.tag_version.outputs.new_tag }}
           body: ${{ steps.tag_version.outputs.changelog }}
+      - name: Output
+        id: job_output
+        run: echo "tag=${{ steps.tag_version.outputs.new_tag }}" >> "$GITHUB_OUTPUT"
+
+  upload_artifact:
+    needs: github_release
+    name: Upload release artifact
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - target: arm-unknown-linux-gnueabihf
+            os: linux-armv6
+          - target: armv7-unknown-linux-gnueabihf
+            os: linux-armv7
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/download-artifact@v3
+        with:
+          name: ${{ matrix.target }}
+          path: ./${{ matrix.target }}
       - name: Upload binaries to release
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: target/arm-unknown-linux-gnueabihf/release/logger
-          asset_name: logger-armv6
-          tag: ${{ steps.tag_version.outputs.new_tag }}
+          file: ./${{ matrix.target }}
+          asset_name: logger-${{ matrix.os }}
+          tag: ${{ needs.github_release.job_output.tag }}
           overwrite: true
