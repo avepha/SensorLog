@@ -12,9 +12,9 @@ jobs:
     strategy:
       matrix:
         include:
-          - os: linux_arm6
+          - os: linux-armv6
             dockerfile: rpizw.Dockerfile
-          - os: linux_arm7
+          - os: linux-armv7
             dockerfile: rpi3.Dockerfile
 
     steps:

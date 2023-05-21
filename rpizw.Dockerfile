@@ -5,7 +5,7 @@ ENV RPI_TOOLS=/rpi_tools
 ENV MACHINE=armv6
 ENV ARCH=armv6
 ENV CC=gcc
-ENV RPIZW=true
+ENV RPI=1
 
 RUN dpkg --add-architecture armhf
 RUN apt-get update &&\

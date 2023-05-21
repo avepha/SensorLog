@@ -1,7 +1,7 @@
 # Pi 0/1
 [target.arm-unknown-linux-gnueabihf]
-image = "avepha/logger-armv6:latest"
+image = "avepha/logger-linux-armv6:latest"
 
 # Pi 2/3/4
 [target.armv7-unknown-linux-gnueabihf]
-image = "rpi-2u"
+image = "avepha/logger-linux-armv7:latest"
