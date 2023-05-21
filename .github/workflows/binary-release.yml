@@ -116,12 +116,12 @@ jobs:
           name: logger-${{ matrix.target }}
           path: ./${{ matrix.target }}
       - name: List output
-        run: echo ${{ needs.github_release.job_output.tag }}
+        run: echo ${{ needs.github_release.outputs.tag }}
       - name: Upload binaries to release
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: ./${{ matrix.target }}
           asset_name: logger-${{ matrix.os }}
-          tag: ${{ needs.github_release.job_output.tag }}
+          tag: ${{ needs.github_release.outputs.tag }}
           overwrite: true
