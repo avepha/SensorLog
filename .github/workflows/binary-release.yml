@@ -122,7 +122,7 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: ./${{ matrix.target }}
+          file: ./${{ matrix.target }}/logger
           asset_name: logger-${{ matrix.os }}
           tag: ${{ needs.github_release.outputs.tag }}
           overwrite: true
