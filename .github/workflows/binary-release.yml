@@ -115,6 +115,7 @@ jobs:
         with:
           name: logger-${{ matrix.target }}
           path: ./${{ matrix.target }}
+      - run: tree ./${{ matrix.target }}
       - name: List output
         run: echo ${{ needs.github_release.outputs.tag }}
       - name: Upload binaries to release
