@@ -6,7 +6,7 @@ pub struct SensorLog {
     pub sensor: u32,
     pub outdated: bool,
     pub value: f32,
-    pub created_at: u64,
+    pub created_at: String,
     pub station: u32,
 }
 

@@ -3,7 +3,7 @@ extern crate logger;
 use crate::logger::db::sqlite::get_db;
 use crate::logger::handlers::logger::log_saves;
 use crate::logger::models::sensor_logs::SensorLog;
-use logger::{models::init_db, utils::str_date_to_millis};
+use logger::{models::init_db, utils::iso_date_to_millis};
 
 #[derive(Debug, Clone)]
 pub struct OldSGResult {
@@ -58,7 +58,7 @@ async fn main() {
                 sensor: result.sensor,
                 outdated: result.outdated,
                 value: result.value,
-                created_at: str_date_to_millis(result.created_time.as_str()),
+                created_at: iso_date_to_millis(result.created_time.as_str()).to_string(),
                 station: result.station,
             })
             .collect();

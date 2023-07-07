@@ -1,12 +1,15 @@
+use std::collections::HashMap;
+use std::convert::Infallible;
+
+use chrono::DateTime;
+use rusqlite::params_from_iter;
+use serde_derive::{Deserialize, Serialize};
+use warp::{reject, Rejection};
+
 use crate::api::logger::LogFilterInput;
 use crate::db::sqlite::SQLITEPOOL;
 use crate::models::sensor_logs::SensorLog;
-use crate::utils::ts_to_iso8601;
-
-use rusqlite::params_from_iter;
-use serde_derive::{Deserialize, Serialize};
-use std::collections::HashMap;
-use std::convert::Infallible;
+use crate::utils::{iso_date_to_millis, ts_to_iso8601};
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct SensorLogResponse {
@@ -43,14 +46,14 @@ pub fn logs(params: LogFilterInput) -> Vec<SensorLogResponse> {
     }
 
     if params.after != None && params.before == None {
-        conditions.push(format!(" created_at > {} ", params.after.unwrap()));
+        conditions.push(format!(" created_at > {} ", iso_date_to_millis(params.after.unwrap().as_str())));
     } else if params.after == None && params.before != None {
-        conditions.push(format!(" created_at < {} ", params.before.unwrap()));
+        conditions.push(format!(" created_at < {} ", iso_date_to_millis(params.before.unwrap().as_str())));
     } else if params.after != None && params.before != None {
         conditions.push(format!(
             " created_at BETWEEN {} AND {} ",
-            params.after.unwrap(),
-            params.before.unwrap()
+            iso_date_to_millis(params.after.unwrap().as_str()),
+            iso_date_to_millis(params.before.unwrap().as_str())
         ));
     }
 
@@ -102,10 +105,10 @@ pub fn logs(params: LogFilterInput) -> Vec<SensorLogResponse> {
     sensor_logs
 }
 
-pub async fn log_saves(sensors: Vec<SensorLog>) -> Result<impl warp::Reply, Infallible> {
+pub async fn log_saves(sensors: Vec<SensorLog>) -> Result<impl warp::Reply, Rejection> {
     let conn = SQLITEPOOL.get().unwrap();
 
-    // println!("[Info] Saving... {:?}", sensors);
+    println!("[Info] Saving... {:?}", sensors);
 
     let mut values: Vec<String> = Vec::new();
     let mut placeholers = String::from(
@@ -133,28 +136,34 @@ pub async fn log_saves(sensors: Vec<SensorLog>) -> Result<impl warp::Reply, Infa
             String::from("0")
         });
         values.push(sensor.value.to_string());
-        values.push(sensor.created_at.to_string());
+
+        let timestamp = iso_date_to_millis(&sensor.created_at);
+
+        if timestamp == -1 {
+            return Ok(warp::reply::json(&HashMap::from([
+                ("error", format!("Invalid date format {}", sensor.created_at)),
+            ])))
+        }
+
+        values.push(timestamp.to_string());
     }
 
     let result = conn.execute(&placeholers, params_from_iter(values.iter()));
 
-    match result {
+    return match result {
         Ok(usize) => {
-            println!("effected_rows: {}", usize);
-
-            return Ok(warp::reply::json(&HashMap::from([(
-                "effected_rows",
-                usize,
-            )])));
+            Ok(warp::reply::json(&HashMap::from([
+                ("effected_rows", usize)
+            ])))
         }
         Err(err) => {
             println!("[Error] {}", err);
 
-            return Ok(warp::reply::json(&HashMap::from([
+            Ok(warp::reply::json(&HashMap::from([
                 ("error", err.to_string()),
                 ("sql", placeholers),
                 ("values", values.concat().to_string()),
-            ])));
+            ])))
         }
     }
 }
