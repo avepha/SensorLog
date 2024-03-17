@@ -1,10 +1,8 @@
 use std::collections::HashMap;
-use std::convert::Infallible;
 
-use chrono::DateTime;
 use rusqlite::params_from_iter;
 use serde_derive::{Deserialize, Serialize};
-use warp::{reject, Rejection};
+use warp::Rejection;
 
 use crate::api::logger::LogFilterInput;
 use crate::db::sqlite::SQLITEPOOL;
@@ -62,7 +60,7 @@ pub fn logs(params: LogFilterInput) -> Vec<SensorLogResponse> {
         base_stm.push_str(&conditions.join(" AND "));
     }
 
-    base_stm.push_str(&format!(" LIMIT {}", limit));
+    base_stm.push_str(&format!(" LIMIT {}", 99999));
 
     println!("[Query] {}", base_stm);
 
@@ -92,13 +90,18 @@ pub fn logs(params: LogFilterInput) -> Vec<SensorLogResponse> {
     let mut sensor_logs: Vec<SensorLogResponse> = Vec::new();
 
     let mut count = 0;
-
+    let mut limit_counter = 0;
     for r in results {
         count += 1;
 
         if count == interval {
             sensor_logs.push(r.unwrap());
+            limit_counter += 1;
             count = 0;
+
+            if limit_counter == limit {
+                break;
+            }
         }
     }
 
